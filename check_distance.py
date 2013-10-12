@@ -4,6 +4,28 @@ import sys
 
 from fit_sample import FitSample
 
+class Logger(object):
+    enabled = False
+
+    def __init__(self, f=sys.stdout, enabled=None):
+        self.f = f
+        if enabled is not None:
+           self.enabled = enabled
+
+    def error(self, msg):
+        if self.enabled:
+            print >>f, "ERROR: %s" % (msg)
+
+    def warn(self, msg):
+        if self.enabled:
+            print >>f, "WARNING: %s" % (msg)
+
+    def say(self, msg):
+        if self.enabled:
+            print >>f, "%s" % (msg)
+
+logger = Logger()
+
 def main(fitpath):
     print "Reading .fit data from %s..." % (fitpath)
     samples = FitSample.all_from_fit_file(fitpath)
