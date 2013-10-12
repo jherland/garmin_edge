@@ -9,6 +9,8 @@ sys.path.append("./python-fitparse")
 from fitparse import Activity
 
 class FitSample(object):
+    """Encapsulate one sample from a .fit file."""
+
     @classmethod
     def from_fit_record(cls, r, last_sample):
         d = r.as_dict()
