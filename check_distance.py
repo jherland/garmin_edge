@@ -16,8 +16,8 @@ def format_vals(vals):
         vals[2] * 3.6 ,# Speed [km/h]
         "N" if vals[3] >= 0 else "S",
         (180.0 * vals[3]) / 2 **31, # Latitude [degrees]
-        "E" if vals[3] >= 0 else "W",
-        (180.0 * vals[3]) / 2 **31, # Longitude [degrees]
+        "E" if vals[4] >= 0 else "W",
+        (180.0 * vals[4]) / 2 **31, # Longitude [degrees]
     )
 
 def main(fitpath):
