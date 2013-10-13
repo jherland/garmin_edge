@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import sys
+import math
 import time
 from datetime import datetime
 
@@ -38,8 +39,8 @@ class FitSample(object):
 
     def __init__(self, t, lat, lon, alt, temp, d, v, hr, cad):
         self.t = t # seconds since start/epoch: s
-        self.lat = lat # latitude: rad * 2**31
-        self.lon = lon # longitude: rad * 2**31
+        self.lat = lat # latitude: semicircles (= 180/(2**31) degrees)
+        self.lon = lon # longitude: semicircles (= 180/(2**31) degrees)
         self.alt = alt # altitude: m
         self.temp = temp # temperature: °C
         self.d = d # distance: m
@@ -61,17 +62,30 @@ class FitSample(object):
         return datetime.fromtimestamp(self.t).replace(microsecond=0).isoformat(" ")
 
     @staticmethod
-    def intrad_to_deg(intrad):
-        """Convert integer value of radians * 2**31 to degrees."""
-        return (float(intrad) / 2**31) * 180
+    def semicircles_to_deg(semicircles):
+        """Convert integer value of semicircles to degrees."""
+        return float(semicircles) * 180 / 2**31
 
     def lat_deg(self):
         """Return latitude as degrees (positive = north, negative = south)."""
-        return self.intrad_to_deg(self.lat)
+        return self.semicircles_to_deg(self.lat)
 
     def lon_deg(self):
         """Return longitude as degrees (positive = east, negative = west)."""
-        return self.intrad_to_deg(self.lon)
+        return self.semicircles_to_deg(self.lon)
+
+    @staticmethod
+    def semicircles_to_rad(semicircles):
+        """Convert integer value of semicircles to radians."""
+        return float(semicircles) * math.pi / 2**31
+
+    def lat_rad(self):
+        """Return latitude as radians (positive = north, negative = south)."""
+        return self.semicircles_to_rad(self.lat)
+
+    def lon_rad(self):
+        """Return longitude as radians (positive = east, negative = west)."""
+        return self.semicircles_to_rad(self.lon)
 
     def lat_coord(self):
         """Return latitude as (dir, degrees) tuple where dir is 'N' or 'S'."""
