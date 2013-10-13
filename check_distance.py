@@ -14,15 +14,15 @@ class Logger(object):
 
     def error(self, msg):
         if self.enabled:
-            print >>f, "ERROR: %s" % (msg)
+            print >>self.f, "ERROR: %s" % (msg)
 
     def warn(self, msg):
         if self.enabled:
-            print >>f, "WARNING: %s" % (msg)
+            print >>self.f, "WARNING: %s" % (msg)
 
     def say(self, msg):
         if self.enabled:
-            print >>f, "%s" % (msg)
+            print >>self.f, "%s" % (msg)
 
 logger = Logger()
 
