@@ -15,25 +15,21 @@ class FitDiff(object):
 
     @staticmethod
     def coord_dist(a_lat, a_lon, b_lat, b_lon):
-        """Calculate the distance in meters between the given two GPS coords.
+        """Calculate the distance in meters between the given two GPS coords
 
-        The given coords are assumed to be signed 32-bit integers covering the
-        range from -180 degrees to +180 degrees. I.e. the given numbers can be
-        converted to radians simply by dividing by 2**31.
+        The given coords are assumed to be in radians, i.e. between -π and +π.
         """
-        d_lat = float(b_lat - a_lat) / 2**31
-        d_lon = float(b_lon - a_lon) / 2**31
+        d_lat = b_lat - a_lat
+        d_lon = b_lon - a_lon
         a = pow(math.sin(d_lat / 2), 2) + \
-            math.cos(float(a_lat) / 2**31) * \
-            math.cos(float(b_lat) / 2**31) * \
-            pow(math.sin(d_lon / 2), 2)
+            math.cos(a_lat) * math.cos(b_lat) * pow(math.sin(d_lon / 2), 2)
         c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
-        return c * 6378137
+        return c * 6378137 # multiply by earth radius (in meters)
 
     def __init__(self, a, b):
         self.t = b.t - a.t # time diff: s
-        # distance from a.lat/lon to b.lat/lon: m
-        self.latlon_d = self.coord_dist(a.lat, a.lon, b.lat, b.lon)
+        self.gps_d = self.coord_dist( # distance from a.lat/lon to b.lat/lon: m
+            a.lat_rad(), a.lon_rad(), b.lat_rad(), b.lon_rad())
         self.alt = b.alt - a.alt # altitude diff: m
         self.temp = b.temp - a.temp # temperature diff: °C
         self.d = b.d - a.d # distance from a to b: m
@@ -44,15 +40,19 @@ class FitDiff(object):
     def __str__(self):
         return "<%s: %+4.1fs, %5.2fm vs. %5.2fm, %+4.1fm/s, %+4.1fm, %+4.1f°C,"\
                " %+3dbpm, %+3drpm>" % (self.__class__.__name__,
-                self.t, self.latlon_d, self.d, self.v, self.alt, self.temp,
+                self.t, self.gps_d, self.d, self.v, self.alt, self.temp,
                 self.hr, self.cad)
 
 def main(fitpath):
     from fit_sample import FitSample
     print "Reading .fit data from %s..." % (fitpath)
     diffs = FitDiff.diffs_between_samples(FitSample.all_from_fit_file(fitpath))
+    distances = [0.0, 0.0]
     for n, d in enumerate(diffs):
+        distances[0] += d.gps_d
+        distances[1] += d.d
         print "%6d: %s" % (n, d)
+    print "Total distance: %5.2fm vs. %5.2fm" % (distances[0], distances[1])
     return 0
 
 if __name__ == '__main__':
