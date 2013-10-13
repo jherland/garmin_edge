@@ -1,0 +1,63 @@
+Analysis of bundled .fit files
+
+2013-10-06-09-54-16.fit:
+ - Relevant distances:
+	Johan, python, internal: 94.618km
+	Johan, python, gps-calc: 101.566km
+	Johan, Garmin Connect: 94.62km
+	Johan, Garmin Connect as course: 101.02km
+	Amund: 101.87km
+ - Bike trip in the Oslo area
+ - Cadence sensor connected, provides cadence as well as distance/speed
+ - According to Garmin forums, Edge 510 prefers distance data from cadence
+   sensor over calculation from GPS coords
+ - Friend's Garmin Forerunner 310XT recorded > 101.87km
+ - My Garmin Edge 510 recorded < 94.62km
+ - Follow course was enabled
+ - Route calculation error
+ - Occasional "Off Course" and "Course Found" alerts while riding
+ - Occasional apparent freezes observed while riding
+ - .fit analysis shows lots of sample gaps (3/4/5/... seconds w/o any samples)
+ - 9.96% of samples missing
+ - Calculating distance from GPS coords yields 101.566km, which corresponds
+   much better to actual course length
+ - Comparing sample-by-sample, there seems to be high correlation between
+   missing samples and diff between internal distance and GPS-calc. distance.
+ - Hypothesis (informed by relevant discussions on the Garmin forums): The
+   "follow course" mode is buggy, and causes samples to be dropped, and also
+   the internal distance to become too short.
+
+2013-10-12-12-01-23.fit:
+ - Relevant distances:
+	Johan, python, internal: 12.648km
+	Johan, python, gps-calc: 14.822km
+	Johan, Garmin Connect: 12.65km
+	Johan, Garmin Connect as course: 13.07km
+	Amund: 13.71km
+	Helga: 13.4km
+ - Hiking trip, No biking involved.
+ - Edge 510 has no hiking mode. Bike profile: "No bike"
+ - No cadence sensor, distance (must?) be calculated from GPS data.
+ - My Garmin Edge 510 shows considerable smaller distance than two friends'
+   (Garmin) GPS devices (Forerunner 310XT and Montana 600)
+ - While on trip, the difference seems to grow more quickly over the first
+   kilometers. Stabilizes somewhat later in the hike.
+ - 1.06% of samples missing
+ - The development of the difference between internal distance and GPS-calc.
+   distance seems NOT correlated with missing samples.
+ - Unsure what causes the the missing samples. Maybe UI interaction?
+ - Unsure why the internal distance (which is presumably calculated from
+   sequence of GPS coords) is very different from (~15%) from the distance
+   calculated directly from GPS coords.
+ - Unsure why neither matches the distance reported by friends' GPS devices.
+
+2013-10-13-11-44-50.fit:
+ - Relevant distances:
+	Johan, python, internal: 13.723km
+	Johan, python, gps-calc: 16.410km
+	Johan, Garmin Connect: 13.72km
+	Johan, Garmin Connect as course: 14.56km
+	Amund: 14.95km
+	Helga: 14.3km
+ - See notes above for 2013-10-12-12-01-23.fit
+ - 0.87% of samples missing
