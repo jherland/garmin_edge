@@ -3,9 +3,10 @@
 import sys
 
 from fit_sample import FitSample
+from fit_diff import FitDiff
 
 class Logger(object):
-    enabled = False
+    enabled = True
 
     def __init__(self, f=sys.stdout, enabled=None):
         self.f = f
@@ -29,21 +30,26 @@ logger = Logger()
 def main(fitpath):
     print "Reading .fit data from %s..." % (fitpath)
     samples = FitSample.all_from_fit_file(fitpath)
-    first = next(samples)
-    mins = first.copy()
-    maxes = first.copy()
-    sums = first.copy()
-    for n, s in enumerate(samples, 1):
-        mins.apply(lambda a, mins: min(getattr(mins, a), getattr(s, a)))
-        maxes.apply(lambda a, maxes: max(getattr(maxes, a), getattr(s, a)))
-        sums.apply(lambda a, sums: getattr(sums, a) + getattr(s, a))
-        n += 1
-    print "Processed %d records." % (n)
-    print "Minimums:", mins
-    print "Maximums:", maxes
-    sums.apply(lambda a, sums: getattr(sums, a) / float(n))
-    print "Averages:", sums
-    return 0
+    seconds, records = 0, 0
+    gps_dist, int_dist = 0, 0
+    dist_diff = 0
+    for d in FitDiff.diffs_between_samples(samples):
+        if d.t > 1:
+            logger.warn("Lost %ds after %ds" % (d.t - 1, seconds))
+        records += 1
+        seconds += d.t
+        gps_dist += d.gps_d
+        int_dist += d.d
+        dd = gps_dist - int_dist
+        if abs(dd - dist_diff) > 1:
+            print "GPS - Int. distance -> %.1fm after %ds" % (dd, seconds)
+            dist_diff = dd
+    missing = seconds - records
+    print "Found %d records in %ds, %d records (=%.2f%%) missing)" % (
+        records, seconds, missing, 100.0 * missing / seconds)
+    print "Internal distance: %.3fkm" % (int_dist / 1000.0)
+    print "Calc. distance from GPS coords: %.3fkm" % (gps_dist / 1000.0)
+    print "Int./GPS distance is %.2f%%" % (100.0 * int_dist / gps_dist)
 
 if __name__ == '__main__':
     sys.exit(main(*sys.argv[1:]))
