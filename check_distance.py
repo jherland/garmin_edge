@@ -2,7 +2,7 @@
 
 import sys
 
-from fit_parser import FitParser
+from act_parser import ActParser
 from act_sample_diff import ActSampleDiff
 
 class Logger(object):
@@ -27,14 +27,14 @@ class Logger(object):
 
 logger = Logger()
 
-def main(fitpath):
-    print "Reading .fit data from %s..." % (fitpath),
-    fp = FitParser(fitpath)
+def main(path):
+    print "Reading activity data from %s..." % (path),
+    ap = ActParser(path)
     print "done"
     seconds, records = 0, 0
     gps_dist, int_dist = 0, 0
     dist_diff = 0
-    for d in ActSampleDiff.diffs_between_samples(fp.samples()):
+    for d in ActSampleDiff.diffs_between_samples(ap.samples()):
         if d.t > 1:
             logger.warn("Lost %ds after %ds" % (d.t - 1, seconds))
         records += 1

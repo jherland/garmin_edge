@@ -55,13 +55,13 @@ class ActSampleDiff(object):
                 self.t, self.gps_d, self.d, self.v, self.alt, self.temp,
                 self.hr, self.cad)
 
-def main(fitpath):
-    from fit_parser import FitParser
-    print "Reading .fit data from %s..." % (fitpath),
-    fp = FitParser(fitpath)
+def main(path):
+    from act_parser import ActParser
+    print "Reading activity data from %s..." % (path),
+    ap = ActParser(path)
     print "done"
     distances = [0.0, 0.0]
-    for n, d in enumerate(ActSampleDiff.diffs_between_samples(fp.samples())):
+    for n, d in enumerate(ActSampleDiff.diffs_between_samples(ap.samples())):
         distances[0] += d.gps_d
         distances[1] += d.d
         print "%6d: %s" % (n, d)
