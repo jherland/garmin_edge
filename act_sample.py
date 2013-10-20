@@ -26,6 +26,13 @@ class ActSample(object):
                 self.pos_str(), self.iso_timestamp(), self.alt, self.temp,
                 self.d, self.v, self.hr, self.cad)
 
+    def replace(self, **d):
+        """Return a new ActSample where the given fields have been replaced."""
+        return self.__class__(d.get("t", self.t), d.get("lat", self.lat),
+            d.get("lon", self.lon), d.get("alt", self.alt),
+            d.get("temp", self.temp), d.get("d", self.d), d.get("v", self.v),
+            d.get("hr", self.hr), d.get("cad", self.cad))
+
     def iso_timestamp(self):
         return datetime.fromtimestamp(self.t).isoformat(" ")
 
