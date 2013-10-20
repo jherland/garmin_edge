@@ -27,7 +27,7 @@ class ActSample(object):
                 self.d, self.v, self.hr, self.cad)
 
     def iso_timestamp(self):
-        return datetime.fromtimestamp(self.t).replace(microsecond=0).isoformat(" ")
+        return datetime.fromtimestamp(self.t).isoformat(" ")
 
     def lat_deg(self):
         """Return latitude as degrees (positive = north, negative = south)."""

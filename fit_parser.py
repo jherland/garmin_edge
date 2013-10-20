@@ -16,7 +16,7 @@ def semicircles_to_radians(semicircles):
 
 class FitParser(object):
     @staticmethod
-    def from_fit_record(r, last_sample):
+    def parseFitRecord(r, last_sample):
         d = r.as_dict()
         try:
             lat = semicircles_to_radians(d['position_lat'])
@@ -45,7 +45,7 @@ class FitParser(object):
         # TODO: Detect timer start event and use that to reset timestamps.
         s = ActSample.empty()
         for r in act.get_records_by_type('record'):
-            s = cls.from_fit_record(r, s)
+            s = cls.parseFitRecord(r, s)
             yield s
 
 def main(fitpath):
