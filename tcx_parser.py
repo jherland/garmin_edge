@@ -11,77 +11,79 @@ class TcxParser(object):
     TagPrefix = "{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}"
     TagExtPrefix = "{http://www.garmin.com/xmlschemas/ActivityExtension/v2}"
 
-    @classmethod
-    def parsePosition(cls, elm):
-        lat = elm.findtext(cls.TagPrefix + "LatitudeDegrees")
-        lon = elm.findtext(cls.TagPrefix + "LongitudeDegrees")
+    def __init__(self, path):
+        self.path = path
+
+    def parsePosition(self, elm):
+        lat = elm.findtext(self.TagPrefix + "LatitudeDegrees")
+        lon = elm.findtext(self.TagPrefix + "LongitudeDegrees")
         return (math.radians(float(lat)), math.radians(float(lon)))
 
-    @classmethod
-    def parseTrackpoint(cls, elm, last_sample):
+    def parseTrackpoint(self, elm, last_sample):
         d = {}
 
         # timestamp
-        ts = elm.findtext(cls.TagPrefix + "Time")
+        ts = elm.findtext(self.TagPrefix + "Time")
         assert ts.endswith(".000Z") # Assume all timestamps do this...
         d["t"] = time.mktime(time.strptime(ts[:-5], "%Y-%m-%dT%H:%M:%S"))
 
         # position
         try:
-            pos = cls.parsePosition(elm.find(cls.TagPrefix + "Position"))
+            pos = self.parsePosition(elm.find(self.TagPrefix + "Position"))
             d["lat"], d["lon"] = pos
         except (TypeError, AttributeError):
             pass
 
         # altitude
         try:
-            d["alt"] = float(elm.findtext(cls.TagPrefix + "AltitudeMeters"))
+            d["alt"] = float(elm.findtext(self.TagPrefix + "AltitudeMeters"))
         except TypeError:
             pass
 
         # distance
         try:
-            d["d"] = float(elm.findtext(cls.TagPrefix + "DistanceMeters"))
+            d["d"] = float(elm.findtext(self.TagPrefix + "DistanceMeters"))
         except TypeError:
             pass
 
         # heart rate
         try:
-            d["hr"] = int(elm.findtext(cls.TagPrefix + "HeartRateBpm/" +
-                                       cls.TagPrefix + "Value"))
+            d["hr"] = int(elm.findtext(self.TagPrefix + "HeartRateBpm/" +
+                                       self.TagPrefix + "Value"))
         except TypeError:
             pass
 
         # cadence
         try:
-            d["cad"] = int(elm.findtext(cls.TagPrefix + "Cadence"))
+            d["cad"] = int(elm.findtext(self.TagPrefix + "Cadence"))
         except TypeError:
             pass
 
         # speed
         try:
-            d["v"] = float(elm.findtext(cls.TagPrefix + "Extensions/" +
-                                        cls.TagExtPrefix + "TPX/" +
-                                        cls.TagExtPrefix + "Speed"))
+            d["v"] = float(elm.findtext(self.TagPrefix + "Extensions/" +
+                                        self.TagExtPrefix + "TPX/" +
+                                        self.TagExtPrefix + "Speed"))
         except TypeError:
             pass
 
         return last_sample.replace(**d)
 
-    @classmethod
-    def samples(cls, path):
+    def samples(self):
         # TODO: Detect timer start event and use that to reset timestamps.
         s = ActSample.empty()
-        for event, elm in ET.iterparse(path):
-            if elm.tag == cls.TagPrefix + "Trackpoint": # end TrackPoint
-                s = cls.parseTrackpoint(elm, s)
+        for event, elm in ET.iterparse(self.path):
+            if elm.tag == self.TagPrefix + "Trackpoint": # end TrackPoint
+                s = self.parseTrackpoint(elm, s)
                 yield s
-            elif elm.tag == cls.TagPrefix + "Activity": # end first Activity
+            elif elm.tag == self.TagPrefix + "Activity": # end first Activity
                 break # Skip any subsequent Activity
 
 def main(tcxpath):
-    print "Reading .tcx data from %s..." % (tcxpath)
-    for n, s in enumerate(TcxParser.samples(tcxpath)):
+    print "Reading .tcx data from %s..." % (tcxpath),
+    tp = TcxParser(tcxpath)
+    print "done"
+    for n, s in enumerate(tp.samples()):
         print "%6d: %s" % (n, s)
     return 0
 
