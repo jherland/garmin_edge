@@ -26,6 +26,34 @@ class ActSample(object):
                 self.pos_str(), self.iso_timestamp(), self.alt, self.temp,
                 self.d, self.v, self.hr, self.cad)
 
+    @staticmethod
+    def comparator(**kwds):
+        """Return a comparison function based on the given fields.
+
+        Create and return a function that compares two ActSamples on the fields
+        that are non-False in the given argument list. For each (enabled) field,
+        the comparison yields 0 (= equality) if the difference between the
+        two field values is less than the given value for the field argument.
+        The default comparison function returned, will return 0 iff all of the
+        following hold:
+         - a.t and b.t are <= 0.1 seconds apart
+         - a.lat and b.lat are <= 0.0000001 radians apart
+         - a.lon and b.lon are <= 0.0000001 radians apart
+        The default limits on the lat and lon fields correspond roughly to a
+        and b being less than 1m apart in geodistance.
+        """
+        d = {'t': 0.1, 'lat': 0.0000001, 'lon': 0.0000001}
+        d.update(kwds)
+
+        def compfunc(a, b):
+            for f in ['t', 'lat', 'lon', 'alt', 'temp', 'd', 'v', 'hr', 'cad']:
+                v = d.get(f, False)
+                if v and abs(getattr(b, f) - getattr(a, f)) > v:
+                    return getattr(b, f) - getattr(a, f)
+            return 0
+
+        return compfunc
+
     def replace(self, **d):
         """Return a new ActSample where the given fields have been replaced."""
         return self.__class__(d.get("t", self.t), d.get("lat", self.lat),
