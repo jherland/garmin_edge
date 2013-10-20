@@ -28,12 +28,13 @@ class Logger(object):
 logger = Logger()
 
 def main(fitpath):
-    print "Reading .fit data from %s..." % (fitpath)
-    samples = FitParser.samples(fitpath)
+    print "Reading .fit data from %s..." % (fitpath),
+    fp = FitParser(fitpath)
+    print "done"
     seconds, records = 0, 0
     gps_dist, int_dist = 0, 0
     dist_diff = 0
-    for d in ActSampleDiff.diffs_between_samples(samples):
+    for d in ActSampleDiff.diffs_between_samples(fp.samples()):
         if d.t > 1:
             logger.warn("Lost %ds after %ds" % (d.t - 1, seconds))
         records += 1

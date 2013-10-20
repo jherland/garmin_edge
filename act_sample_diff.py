@@ -57,11 +57,11 @@ class ActSampleDiff(object):
 
 def main(fitpath):
     from fit_parser import FitParser
-    print "Reading .fit data from %s..." % (fitpath)
-    diffs = ActSampleDiff.diffs_between_samples(
-        FitParser.samples(fitpath))
+    print "Reading .fit data from %s..." % (fitpath),
+    fp = FitParser(fitpath)
+    print "done"
     distances = [0.0, 0.0]
-    for n, d in enumerate(diffs):
+    for n, d in enumerate(ActSampleDiff.diffs_between_samples(fp.samples())):
         distances[0] += d.gps_d
         distances[1] += d.d
         print "%6d: %s" % (n, d)

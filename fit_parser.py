@@ -38,19 +38,28 @@ class FitParser(object):
             d.get('cadence', last_sample.cad),
         )
 
-    @classmethod
-    def samples(cls, path):
-        act = Activity(path)
-        act.parse()
-        # TODO: Detect timer start event and use that to reset timestamps.
+    def __init__(self, path):
+        self.path = path
+        self.act = Activity(path)
+        self.act.parse()
+
+    def samples(self):
+        """Yield all trackpoints as ActSample objects."""
         s = ActSample.empty()
-        for r in act.get_records_by_type('record'):
-            s = cls.parseFitRecord(r, s)
+        for r in self.act.get_records_by_type('record'):
+            s = self.parseFitRecord(r, s)
             yield s
 
+    def all(self):
+        """Yield all .fit records as dicts."""
+        for d in self.act.get_records_as_dicts():
+            yield d
+
 def main(fitpath):
-    print "Reading .fit data from %s..." % (fitpath)
-    for n, s in enumerate(FitParser.samples(fitpath)):
+    print "Reading .fit data from %s..." % (fitpath),
+    fp = FitParser(fitpath)
+    print "done"
+    for n, s in enumerate(fp.samples()):
         print "%6d: %s" % (n, s)
     return 0
 
