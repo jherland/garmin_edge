@@ -2,7 +2,7 @@
 
 import sys
 
-from act_sample import ActSample
+from fit_parser import FitParser
 from act_sample_diff import ActSampleDiff
 
 class Logger(object):
@@ -29,7 +29,7 @@ logger = Logger()
 
 def main(fitpath):
     print "Reading .fit data from %s..." % (fitpath)
-    samples = ActSample.all_from_fit_file(fitpath)
+    samples = FitParser.samples(fitpath)
     seconds, records = 0, 0
     gps_dist, int_dist = 0, 0
     dist_diff = 0

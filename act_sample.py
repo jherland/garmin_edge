@@ -1,54 +1,13 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 
-import sys
 import math
-import time
 from datetime import datetime
 
-sys.path.append("./python-fitparse")
-from fitparse import Activity
-
 class ActSample(object):
-    """Encapsulate one sample from a .fit file."""
-
-    @staticmethod
-    def semicircles_to_rad(semicircles):
-        """Convert integer value of semicircles to radians."""
-        return float(semicircles) * math.pi / 2**31
-
     @classmethod
-    def from_fit_record(cls, r, last_sample):
-        d = r.as_dict()
-        try:
-            lat = cls.semicircles_to_rad(d['position_lat'])
-        except KeyError:
-            lat = last_sample.lat
-        try:
-            lon = cls.semicircles_to_rad(d['position_long'])
-        except KeyError:
-            lon = last_sample.lon
-        return cls(
-            time.mktime(d['timestamp'].timetuple()),
-            lat,
-            lon,
-            d.get('altitude', last_sample.alt),
-            d.get('temperature', last_sample.temp),
-            d.get('distance', last_sample.d),
-            d.get('speed', last_sample.v),
-            d.get('heart_rate', last_sample.hr),
-            d.get('cadence', last_sample.cad),
-        )
-
-    @classmethod
-    def all_from_fit_file(cls, path):
-        act = Activity(path)
-        act.parse()
-        # TODO: Detect timer start event and use that to reset timestamps.
-        s = cls(0, 0, 0, 0.0, 0.0, 0.0, 0.0, 0, 0)
-        for r in act.get_records_by_type('record'):
-            s = cls.from_fit_record(r, s)
-            yield s
+    def empty(cls):
+        return cls(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
 
     def __init__(self, t, lat, lon, alt, temp, d, v, hr, cad):
         self.t = t # seconds since start/epoch: s
@@ -106,12 +65,3 @@ class ActSample(object):
         """Perform self.X = func("X", self, *args) for each attr X in self."""
         for attr in ['t', 'lat', 'lon', 'alt', 'temp', 'd', 'v', 'hr', 'cad']:
             setattr(self, attr, func(attr, self, *args))
-
-def main(fitpath):
-    print "Reading .fit data from %s..." % (fitpath)
-    for n, s in enumerate(ActSample.all_from_fit_file(fitpath)):
-        print "%6d: %s" % (n, s)
-    return 0
-
-if __name__ == '__main__':
-    sys.exit(main(*sys.argv[1:]))

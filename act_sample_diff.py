@@ -56,10 +56,10 @@ class ActSampleDiff(object):
                 self.hr, self.cad)
 
 def main(fitpath):
-    from act_sample import ActSample
+    from fit_parser import FitParser
     print "Reading .fit data from %s..." % (fitpath)
     diffs = ActSampleDiff.diffs_between_samples(
-        ActSample.all_from_fit_file(fitpath))
+        FitParser.samples(fitpath))
     distances = [0.0, 0.0]
     for n, d in enumerate(diffs):
         distances[0] += d.gps_d
