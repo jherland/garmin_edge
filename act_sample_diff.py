@@ -3,7 +3,7 @@
 
 import math
 
-class FitDiff(object):
+class ActSampleDiff(object):
     """Encapsulate the difference between to FitSamples."""
 
     @classmethod
@@ -44,9 +44,10 @@ class FitDiff(object):
                 self.hr, self.cad)
 
 def main(fitpath):
-    from fit_sample import FitSample
+    from act_sample import ActSample
     print "Reading .fit data from %s..." % (fitpath)
-    diffs = FitDiff.diffs_between_samples(FitSample.all_from_fit_file(fitpath))
+    diffs = ActSampleDiff.diffs_between_samples(
+        ActSample.all_from_fit_file(fitpath))
     distances = [0.0, 0.0]
     for n, d in enumerate(diffs):
         distances[0] += d.gps_d

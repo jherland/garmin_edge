@@ -9,7 +9,7 @@ from datetime import datetime
 sys.path.append("./python-fitparse")
 from fitparse import Activity
 
-class FitSample(object):
+class ActSample(object):
     """Encapsulate one sample from a .fit file."""
 
     @classmethod
@@ -114,7 +114,7 @@ class FitSample(object):
 
 def main(fitpath):
     print "Reading .fit data from %s..." % (fitpath)
-    for n, s in enumerate(FitSample.all_from_fit_file(fitpath)):
+    for n, s in enumerate(ActSample.all_from_fit_file(fitpath)):
         print "%6d: %s" % (n, s)
     return 0
 

@@ -2,8 +2,8 @@
 
 import sys
 
-from fit_sample import FitSample
-from fit_diff import FitDiff
+from act_sample import ActSample
+from act_sample_diff import ActSampleDiff
 
 class Logger(object):
     enabled = True
@@ -29,11 +29,11 @@ logger = Logger()
 
 def main(fitpath):
     print "Reading .fit data from %s..." % (fitpath)
-    samples = FitSample.all_from_fit_file(fitpath)
+    samples = ActSample.all_from_fit_file(fitpath)
     seconds, records = 0, 0
     gps_dist, int_dist = 0, 0
     dist_diff = 0
-    for d in FitDiff.diffs_between_samples(samples):
+    for d in ActSampleDiff.diffs_between_samples(samples):
         if d.t > 1:
             logger.warn("Lost %ds after %ds" % (d.t - 1, seconds))
         records += 1
