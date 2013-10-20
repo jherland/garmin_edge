@@ -26,10 +26,6 @@ class ActSample(object):
                 self.pos_str(), self.iso_timestamp(), self.alt, self.temp,
                 self.d, self.v, self.hr, self.cad)
 
-    def copy(self):
-        return self.__class__(self.t, self.lat, self.lon, self.alt, self.temp,
-                              self.d, self.v, self.hr, self.cad)
-
     def iso_timestamp(self):
         return datetime.fromtimestamp(self.t).replace(microsecond=0).isoformat(" ")
 
@@ -60,8 +56,3 @@ class ActSample(object):
         """
         lat, lon = self.lat_coord(), self.lon_coord()
         return "%c%09.6f%s%c%010.6f" % (lat[0], lat[1], sep, lon[0], lon[1])
-
-    def apply(self, func, *args):
-        """Perform self.X = func("X", self, *args) for each attr X in self."""
-        for attr in ['t', 'lat', 'lon', 'alt', 'temp', 'd', 'v', 'hr', 'cad']:
-            setattr(self, attr, func(attr, self, *args))
