@@ -12,13 +12,26 @@ from fitparse import Activity
 class ActSample(object):
     """Encapsulate one sample from a .fit file."""
 
+    @staticmethod
+    def semicircles_to_rad(semicircles):
+        """Convert integer value of semicircles to radians."""
+        return float(semicircles) * math.pi / 2**31
+
     @classmethod
     def from_fit_record(cls, r, last_sample):
         d = r.as_dict()
+        try:
+            lat = cls.semicircles_to_rad(d['position_lat'])
+        except KeyError:
+            lat = last_sample.lat
+        try:
+            lon = cls.semicircles_to_rad(d['position_long'])
+        except KeyError:
+            lon = last_sample.lon
         return cls(
             time.mktime(d['timestamp'].timetuple()),
-            d.get('position_lat', last_sample.lat),
-            d.get('position_long', last_sample.lon),
+            lat,
+            lon,
             d.get('altitude', last_sample.alt),
             d.get('temperature', last_sample.temp),
             d.get('distance', last_sample.d),
@@ -39,8 +52,8 @@ class ActSample(object):
 
     def __init__(self, t, lat, lon, alt, temp, d, v, hr, cad):
         self.t = t # seconds since start/epoch: s
-        self.lat = lat # latitude: semicircles (= 180/(2**31) degrees)
-        self.lon = lon # longitude: semicircles (= 180/(2**31) degrees)
+        self.lat = lat # latitude: radians (-π/2 (south) .. +π/2 (north))
+        self.lon = lon # longitude: radians (-π (west) .. +π (east))
         self.alt = alt # altitude: m
         self.temp = temp # temperature: °C
         self.d = d # distance: m
@@ -61,31 +74,13 @@ class ActSample(object):
     def iso_timestamp(self):
         return datetime.fromtimestamp(self.t).replace(microsecond=0).isoformat(" ")
 
-    @staticmethod
-    def semicircles_to_deg(semicircles):
-        """Convert integer value of semicircles to degrees."""
-        return float(semicircles) * 180 / 2**31
-
     def lat_deg(self):
         """Return latitude as degrees (positive = north, negative = south)."""
-        return self.semicircles_to_deg(self.lat)
+        return math.degrees(self.lat)
 
     def lon_deg(self):
         """Return longitude as degrees (positive = east, negative = west)."""
-        return self.semicircles_to_deg(self.lon)
-
-    @staticmethod
-    def semicircles_to_rad(semicircles):
-        """Convert integer value of semicircles to radians."""
-        return float(semicircles) * math.pi / 2**31
-
-    def lat_rad(self):
-        """Return latitude as radians (positive = north, negative = south)."""
-        return self.semicircles_to_rad(self.lat)
-
-    def lon_rad(self):
-        """Return longitude as radians (positive = east, negative = west)."""
-        return self.semicircles_to_rad(self.lon)
+        return math.degrees(self.lon)
 
     def lat_coord(self):
         """Return latitude as (dir, degrees) tuple where dir is 'N' or 'S'."""
