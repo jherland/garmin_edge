@@ -43,11 +43,15 @@ def find_correlation_offset(l1, l2, score, accumulate, log):
     offset will represent the "best" correlation between l1 and l2.
     """
     # TODO: Add preference for scores that maximize the comparison window?
+    minimum = None
     offsets = xrange(-(len(l1) - 1), len(l2))
     for o in offsets:
         acc_score = accumulate(
             [score(l1[i], l2[j]) for i, j in index_pairs(o, len(l1), len(l2))])
         print >>log, o, acc_score
+        if minimum is None or acc_score < minimum[1]:
+            minimum = (o, acc_score)
+    return minimum
 
 def average(seq):
     return float(sum(seq)) / len(seq)
@@ -67,7 +71,9 @@ def main(path1, path2, logfile = None):
     l2 = list(normalize(p2.samples()))
     print >>log, "done, read %d samples" % (len(l2))
 
-    find_correlation_offset(l1, l2, geodistance, average, log)
+    print >>log, "# Timestamps are offset by %ss" % (l1[0].t - l2[0].t)
+    offs, score = find_correlation_offset(l1, l2, geodistance, average, log)
+    print >>log, "# Done: Minimum score is %f.2 m at offset %d" % (score, offs)
     return 0
 
 if __name__ == '__main__':
