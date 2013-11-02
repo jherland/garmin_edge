@@ -1,5 +1,7 @@
 #!/usr/bin/env python2
 
+import sys
+
 from act_parser import ActParser
 from act_sample import ActSample
 from act_sample_diff import geodistance
@@ -13,7 +15,7 @@ def index_pairs(offset, len1, len2):
         yield (i, j)
         i, j = i + 1, j + 1
 
-def find_correlation_offset(l1, l2, score, accumulate):
+def find_correlation_offset(l1, l2, score, accumulate, log):
     """ Find the offset between l1 and l2 that maximize their correlation.
 
     We need to find the appropriate offset between l1 and l2 that will line up
@@ -45,24 +47,28 @@ def find_correlation_offset(l1, l2, score, accumulate):
     for o in offsets:
         acc_score = accumulate(
             [score(l1[i], l2[j]) for i, j in index_pairs(o, len(l1), len(l2))])
-        print o, acc_score
+        print >>log, o, acc_score
 
 def average(seq):
     return float(sum(seq)) / len(seq)
 
-def main(path1, path2):
-    print "Reading activity data from %s..." % (path1),
+def main(path1, path2, logfile = None):
+    if logfile:
+        log = open(logfile, "w")
+    else:
+        log = sys.stdout
+
+    print >>log, "# Reading activity data from %s..." % (path1),
     p1 = ActParser(path1)
     l1 = list(normalize(p1.samples()))
-    print "done, read %d samples" % (len(l1))
-    print "Reading activity data from %s..." % (path2),
+    print >>log, "done, read %d samples" % (len(l1))
+    print >>log, "# Reading activity data from %s..." % (path2),
     p2 = ActParser(path2)
     l2 = list(normalize(p2.samples()))
-    print "done, read %d samples" % (len(l2))
+    print >>log, "done, read %d samples" % (len(l2))
 
-    find_correlation_offset(l1, l2, geodistance, average)
+    find_correlation_offset(l1, l2, geodistance, average, log)
     return 0
 
 if __name__ == '__main__':
-    import sys
     sys.exit(main(*sys.argv[1:]))
