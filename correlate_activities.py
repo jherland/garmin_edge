@@ -3,6 +3,7 @@
 from act_parser import ActParser
 from act_sample import ActSample
 from act_sample_diff import geodistance
+from act_sample_norm import normalize
 
 def index_pairs(offset, len1, len2):
     """Generate pair of indices to be scored from the given offset."""
@@ -52,11 +53,11 @@ def average(seq):
 def main(path1, path2):
     print "Reading activity data from %s..." % (path1),
     p1 = ActParser(path1)
-    l1 = list(p1.samples())
+    l1 = list(normalize(p1.samples()))
     print "done, read %d samples" % (len(l1))
     print "Reading activity data from %s..." % (path2),
     p2 = ActParser(path2)
-    l2 = list(p2.samples())
+    l2 = list(normalize(p2.samples()))
     print "done, read %d samples" % (len(l2))
 
     find_correlation_offset(l1, l2, geodistance, average)
