@@ -67,6 +67,63 @@ def find_global_max_correlation_offset(l1, l2, score, accumulate, log):
             maximum = (o, s)
     return maximum
 
+def find_local_max_correlation_offset(l1, l2, score, accumulate, log, start=0):
+    """Find the closest offset which corresponds to a local correlation maximum.
+
+    Start looking in either direction from the 'start' offset, and find the
+    first offset that corresponds to a local correlation maximum between l1 and
+    l2.
+
+    This is a potentially quicker version of the above algorithm, but it
+    depends supplying a 'start' offset which is close to the global maximum
+    correlation offset. However, here are some good ways to estimate a good
+    'start' offset: If the two activity streams to be correlated took place at
+    the same time, and the clocks of the two recoding devices were somewhat
+    synchronized (e.g. because both devices derived their timestamps from GPS
+    clocks), then the offset of corresponding timestamps (i.e. the offset o at
+    which l1[x + o].t == l2[x].t for x in [0, min(len(l1), len(l2))) will
+    probably be very close to the global correlation maximum. Alternatively, if
+    the clocks are not synchronized, but the two devices started recording the
+    activity streams roughly simultaneously, then a 'start' offset of 0 will
+    probably be close to the global correlation maximum.
+    """
+    def calc_score(o):
+        return accumulate_score_at_offset(o, l1, l2, score, accumulate, log)
+
+    min_offset = -(len(l1) - 1)
+    max_offset = len(l1) - 1
+    assert min_offset <= start <= max_offset
+
+    s = calc_score(start)
+    if start > min_offset:
+        r = calc_score(start - 1)
+    else:
+        r = s
+    if start < max_offset:
+        t = calc_score(start + 1)
+    else:
+        t = s
+
+    # Find which direction to search (+1 or -1)
+    if s >= max(r, t):
+        return (start, s) # Right on
+    elif r > t:
+        d = -1
+    elif t > r:
+        d = +1
+    else:
+        raise NotImplementedError("TODO: Extend r and t until they differ")
+    assert d == -1 or d == +1
+
+    max_o, max_s, o = start, s, start + d
+    while min_offset <= o <= max_offset:
+        s = calc_score(o)
+        if s < max_s:
+            break # Found local maximum at max_o/max_s
+        max_o, max_s, o = o, s, o + d
+
+    return (max_o, max_s)
+
 def closer(a, b):
     """Return a score that's higher, the closer a and b are to eachother."""
     return -geodistance(a, b)
@@ -89,9 +146,10 @@ def main(path1, path2, logfile=None):
     l2 = list(normalize(p2.samples()))
     print >>log, "done, read %d samples" % (len(l2))
 
-    print >>log, "# Timestamps are offset by %ss" % (l1[0].t - l2[0].t)
-    offs, score = find_global_max_correlation_offset(l1, l2, closer, avg, log)
-    print >>log, "# Done: Minimum score is %f.2 m at offset %d" % (score, offs)
+    o = int(l1[0].t - l2[0].t)
+    print >>log, "# Timestamps are offset by %ds" % (o)
+    o, score = find_local_max_correlation_offset(l1, l2, closer, avg, log, o)
+    print >>log, "# Done: Minimum score at offset %d is %.2f m" % (o, score)
     return 0
 
 if __name__ == '__main__':
