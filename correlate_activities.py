@@ -3,10 +3,7 @@
 
 import sys
 
-from act_parser import ActParser
-from act_sample import ActSample
 from act_sample_diff import geodistance
-from act_sample_norm import normalize
 
 def log_score_disabled(o, s):
     pass
@@ -195,6 +192,9 @@ def correlated_samples(l1, l2, start=0, score=closer, accumulate=avg,
     return zip_samples_at_offset(l1, l2, o, include_empty)
 
 def main(path1, path2, logfile=None):
+    from act_parser import ActParser
+    from act_sample_norm import normalize
+
     print_samples = False
     if logfile:
         log = open(logfile, "w")
