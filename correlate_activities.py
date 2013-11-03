@@ -13,13 +13,53 @@ def log_score_disabled(o, s):
 
 log_score = log_score_disabled
 
-def index_pairs(offset, len1, len2):
-    """Generate pair of indices to be scored from the given offset."""
-    i = max(-offset, 0)
-    j = max(0, offset)
-    while i < len1 and j < len2:
-        yield (i, j)
-        i, j = i + 1, j + 1
+def index_pairs(offset, len1, len2, include_empty=False):
+    """Generate i1, i2 pairs from range(len1), range(len2), with given offset.
+
+    Given two arrays of respective lengths len1 and len2, position the arrays
+    at the given offset (so that index x + offset in the first array
+    corresponds to index x in the second array). Now generate pairs of
+    corresponding indices between the two arrays.
+
+    For example, given two arrays - l1 and l2 - of lengths 10 and 15,
+    respectively, their relative positioning looks like this:
+
+    offset = -(len(l1) - 1) = -9:
+        l1: [.........x]
+        l2:          [y..............]
+    offset = 0:
+        l1: [xxxxxxxxxx]
+        l2: [yyyyyyyyyy.....]
+    offset = +(len(l2) - 1) = 14
+        l1:               [x.........]
+        l2: [..............y]
+
+    When include_empty is False (the default), generate index pairs only where
+    the two arrays overlap. E.g. in the above example, the yielded pairs is:
+
+    offset = -9: (9, 0)
+    offset = 0: (0, 0), (1, 1), (2, 2), ..., (8, 8), (9, 9)
+    offset = 14: (0, 14)
+
+    When include_empty is True, also generate index pairs for non-overlapping
+    parts of the arrays (in which case the non-existent indices are None), e.g.:
+
+    offset = -9: (0, None), (1, None), ..., (8, None), (9, 0)
+    offset = 0: (0, 0), (1, 1), ..., (9, 9), (None, 10), ..., (None, 14)
+    offset = 14: (None, 0), (None, 1), ..., (None, 13), (0, 14)
+    """
+    start = min(0, offset)
+    stop = max(len1, len1 + offset, len2, len2 - offset)
+    def idx(i, l):
+        if 0 <= i < l:
+            return i
+        else:
+            return None
+
+    for x in xrange(start, stop):
+        i, j = idx(x - offset, len1), idx(x, len2)
+        if include_empty or (i is not None and j is not None):
+            yield (idx(x - offset, len1), idx(x, len2))
 
 def accumulate_score_at_offset(o, l1, l2, score, accumulate):
     ret = accumulate(
@@ -129,6 +169,22 @@ def find_local_max_correlation_offset(l1, l2, score, accumulate, start=0):
 
     return (max_o, max_s)
 
+def zip_samples_at_offset(l1, l2, offset=0, include_empty=False):
+    for i1, i2 in index_pairs(offset, len(l1), len(l2), include_empty):
+        s1 = i1 is not None and l1[i1] or None
+        s2 = i2 is not None and l2[i2] or None
+        yield (s1, s2)
+
+def correlated_samples(l1, l2, score, accumulate, start=0, include_empty=False):
+    """Yield pairs of sample objects from l1, l2 at maximum correlation.
+
+    Find the maximum correlation offset o between l1 and l2 (i.e. the local
+    maximum correlation offset closest 'start'), and yield the corresponding
+    samples from l1 and l2 as pairs (l1[x + o], l2[x] for x in )
+    """
+    o = find_local_max_correlation_offset(l1, l2, score, accumulate, start)[0]
+    return zip_samples_at_offset(l1, l2, o, include_empty)
+
 def closer(a, b):
     """Return a score that's higher, the closer a and b are to eachother."""
     return -geodistance(a, b)
@@ -137,6 +193,7 @@ def avg(seq):
     return float(sum(seq)) / len(seq)
 
 def main(path1, path2, logfile=None):
+    print_samples = False
     if logfile:
         log = open(logfile, "w")
         def log_score_enabled(o, s):
@@ -145,6 +202,7 @@ def main(path1, path2, logfile=None):
         log_score = log_score_enabled
     else:
         log = sys.stdout
+        print_samples = True
 
     print >>log, "# Reading activity data from %s..." % (path1),
     p1 = ActParser(path1)
@@ -159,6 +217,11 @@ def main(path1, path2, logfile=None):
     print >>log, "# Timestamps are offset by %ds" % (o)
     o, score = find_local_max_correlation_offset(l1, l2, closer, avg, o)
     print >>log, "# Minimum score at offset %d is %.2f m" % (o, score)
+
+    if print_samples:
+        for s, t in zip_samples_at_offset(l1, l2, o):
+            print >>log, s, t
+
     return 0
 
 if __name__ == '__main__':
