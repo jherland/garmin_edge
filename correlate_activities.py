@@ -8,6 +8,11 @@ from act_sample import ActSample
 from act_sample_diff import geodistance
 from act_sample_norm import normalize
 
+def log_score_disabled(o, s):
+    pass
+
+log_score = log_score_disabled
+
 def index_pairs(offset, len1, len2):
     """Generate pair of indices to be scored from the given offset."""
     i = max(-offset, 0)
@@ -16,13 +21,13 @@ def index_pairs(offset, len1, len2):
         yield (i, j)
         i, j = i + 1, j + 1
 
-def accumulate_score_at_offset(o, l1, l2, score, accumulate, log):
+def accumulate_score_at_offset(o, l1, l2, score, accumulate):
     ret = accumulate(
         [score(l1[i], l2[j]) for i, j in index_pairs(o, len(l1), len(l2))])
-    print >>log, o, ret
+    log_score(o, ret)
     return ret
 
-def find_global_max_correlation_offset(l1, l2, score, accumulate, log):
+def find_global_max_correlation_offset(l1, l2, score, accumulate):
     """Find the offset between l1 and l2 that maximize their correlation.
 
     We need to find the appropriate offset between l1 and l2 that will line up
@@ -62,12 +67,12 @@ def find_global_max_correlation_offset(l1, l2, score, accumulate, log):
     maximum = None
     offsets = xrange(-(len(l1) - 1), len(l2))
     for o in offsets:
-        s = accumulate_score_at_offset(o, l1, l2, score, accumulate, log)
+        s = accumulate_score_at_offset(o, l1, l2, score, accumulate)
         if maximum is None or s > maximum[1]:
             maximum = (o, s)
     return maximum
 
-def find_local_max_correlation_offset(l1, l2, score, accumulate, log, start=0):
+def find_local_max_correlation_offset(l1, l2, score, accumulate, start=0):
     """Find the closest offset which corresponds to a local correlation maximum.
 
     Start looking in either direction from the 'start' offset, and find the
@@ -88,7 +93,7 @@ def find_local_max_correlation_offset(l1, l2, score, accumulate, log, start=0):
     probably be close to the global correlation maximum.
     """
     def calc_score(o):
-        return accumulate_score_at_offset(o, l1, l2, score, accumulate, log)
+        return accumulate_score_at_offset(o, l1, l2, score, accumulate)
 
     min_offset = -(len(l1) - 1)
     max_offset = len(l1) - 1
@@ -134,6 +139,10 @@ def avg(seq):
 def main(path1, path2, logfile=None):
     if logfile:
         log = open(logfile, "w")
+        def log_score_enabled(o, s):
+            print >>log, o, s
+        global log_score
+        log_score = log_score_enabled
     else:
         log = sys.stdout
 
@@ -148,8 +157,8 @@ def main(path1, path2, logfile=None):
 
     o = int(l1[0].t - l2[0].t)
     print >>log, "# Timestamps are offset by %ds" % (o)
-    o, score = find_local_max_correlation_offset(l1, l2, closer, avg, log, o)
-    print >>log, "# Done: Minimum score at offset %d is %.2f m" % (o, score)
+    o, score = find_local_max_correlation_offset(l1, l2, closer, avg, o)
+    print >>log, "# Minimum score at offset %d is %.2f m" % (o, score)
     return 0
 
 if __name__ == '__main__':
