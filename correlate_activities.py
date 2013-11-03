@@ -1,4 +1,5 @@
 #!/usr/bin/env python2
+# -*- coding: utf-8 -*-
 
 import sys
 
@@ -15,8 +16,14 @@ def index_pairs(offset, len1, len2):
         yield (i, j)
         i, j = i + 1, j + 1
 
-def find_correlation_offset(l1, l2, score, accumulate, log):
-    """ Find the offset between l1 and l2 that maximize their correlation.
+def accumulate_score_at_offset(o, l1, l2, score, accumulate, log):
+    ret = accumulate(
+        [score(l1[i], l2[j]) for i, j in index_pairs(o, len(l1), len(l2))])
+    print >>log, o, ret
+    return ret
+
+def find_global_max_correlation_offset(l1, l2, score, accumulate, log):
+    """Find the offset between l1 and l2 that maximize their correlation.
 
     We need to find the appropriate offset between l1 and l2 that will line up
     their samples as close as possible to eachother.
@@ -39,24 +46,35 @@ def find_correlation_offset(l1, l2, score, accumulate, log):
     window/offset.
 
     We can now repeat the process for all other offsets/comparison windows,
-    and compare the scores to see which offset gives the highest score. That
-    offset will represent the "best" correlation between l1 and l2.
+    and compare the scores to see which offset gives the maximum score. That
+    offset will represent the "best" correlation between l1 and l2. We call
+    this the (global) maximum correlation offset.
+
+    A straightforward implementation of this algorithm will iterate through all
+    windows (from -(len(l1) - 1) to +(len(l2) - 1)) and then accumulate scores
+    for each window. Assuming that each score is calculated in constant time
+    (O(1)), and each accumulation across a window take time proportional to the
+    size of the window (O(len(window))), a full traversal of all windows will
+    take O(len(l1) * len(l2)) time. Assuming that the two lists are of roughly
+    equal length (= n) (which is typically true for the activities we're trying
+    to correlate), we need O(n²) time to find the best correlation.
     """
-    # TODO: Add preference for scores that maximize the comparison window?
-    minimum = None
+    maximum = None
     offsets = xrange(-(len(l1) - 1), len(l2))
     for o in offsets:
-        acc_score = accumulate(
-            [score(l1[i], l2[j]) for i, j in index_pairs(o, len(l1), len(l2))])
-        print >>log, o, acc_score
-        if minimum is None or acc_score < minimum[1]:
-            minimum = (o, acc_score)
-    return minimum
+        s = accumulate_score_at_offset(o, l1, l2, score, accumulate, log)
+        if maximum is None or s > maximum[1]:
+            maximum = (o, s)
+    return maximum
 
-def average(seq):
+def closer(a, b):
+    """Return a score that's higher, the closer a and b are to eachother."""
+    return -geodistance(a, b)
+
+def avg(seq):
     return float(sum(seq)) / len(seq)
 
-def main(path1, path2, logfile = None):
+def main(path1, path2, logfile=None):
     if logfile:
         log = open(logfile, "w")
     else:
@@ -72,7 +90,7 @@ def main(path1, path2, logfile = None):
     print >>log, "done, read %d samples" % (len(l2))
 
     print >>log, "# Timestamps are offset by %ss" % (l1[0].t - l2[0].t)
-    offs, score = find_correlation_offset(l1, l2, geodistance, average, log)
+    offs, score = find_global_max_correlation_offset(l1, l2, closer, avg, log)
     print >>log, "# Done: Minimum score is %f.2 m at offset %d" % (score, offs)
     return 0
 
