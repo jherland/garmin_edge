@@ -69,9 +69,8 @@ class TcxParser(object):
 
         return last_sample.replace(**d)
 
-    def samples(self):
+    def samples(self, s=ActSample.empty()):
         # TODO: Detect timer start event and use that to reset timestamps.
-        s = ActSample.empty()
         for event, elm in ET.iterparse(self.path):
             if elm.tag == self.TagPrefix + "Trackpoint": # end TrackPoint
                 s = self.parseTrackpoint(elm, s)

@@ -54,9 +54,8 @@ class FitParser(object):
             d.get('cadence', last_sample.cad),
         )
 
-    def samples(self):
+    def samples(self, s=ActSample.empty()):
         """Yield all trackpoints as ActSample objects."""
-        s = ActSample.empty()
         for r in self.act.get_records_by_type('record'):
             s = self.parseFitRecord(r, s)
             yield s
