@@ -13,6 +13,13 @@ def log_score_disabled(o, s):
 
 log_score = log_score_disabled
 
+def closer(a, b):
+    """Return a score that's higher, the closer a and b are to eachother."""
+    return -geodistance(a, b)
+
+def avg(seq):
+    return float(sum(seq)) / len(seq)
+
 def index_pairs(offset, len1, len2, include_empty=False):
     """Generate i1, i2 pairs from range(len1), range(len2), with given offset.
 
@@ -61,13 +68,13 @@ def index_pairs(offset, len1, len2, include_empty=False):
         if include_empty or (i is not None and j is not None):
             yield (idx(x - offset, len1), idx(x, len2))
 
-def accumulate_score_at_offset(o, l1, l2, score, accumulate):
+def accumulate_score_at_offset(o, l1, l2, score=closer, accumulate=avg):
     ret = accumulate(
         [score(l1[i], l2[j]) for i, j in index_pairs(o, len(l1), len(l2))])
     log_score(o, ret)
     return ret
 
-def find_global_max_correlation_offset(l1, l2, score, accumulate):
+def find_global_max_correlation_offset(l1, l2, score=closer, accumulate=avg):
     """Find the offset between l1 and l2 that maximize their correlation.
 
     We need to find the appropriate offset between l1 and l2 that will line up
@@ -112,7 +119,8 @@ def find_global_max_correlation_offset(l1, l2, score, accumulate):
             maximum = (o, s)
     return maximum
 
-def find_local_max_correlation_offset(l1, l2, score, accumulate, start=0):
+def find_local_max_correlation_offset(l1, l2, start=0, score=closer,
+                                      accumulate=avg):
     """Find the closest offset which corresponds to a local correlation maximum.
 
     Start looking in either direction from the 'start' offset, and find the
@@ -175,22 +183,16 @@ def zip_samples_at_offset(l1, l2, offset=0, include_empty=False):
         s2 = i2 is not None and l2[i2] or None
         yield (s1, s2)
 
-def correlated_samples(l1, l2, score, accumulate, start=0, include_empty=False):
+def correlated_samples(l1, l2, start=0, score=closer, accumulate=avg,
+                       include_empty=False):
     """Yield pairs of sample objects from l1, l2 at maximum correlation.
 
     Find the maximum correlation offset o between l1 and l2 (i.e. the local
     maximum correlation offset closest 'start'), and yield the corresponding
     samples from l1 and l2 as pairs (l1[x + o], l2[x] for x in )
     """
-    o = find_local_max_correlation_offset(l1, l2, score, accumulate, start)[0]
+    o = find_local_max_correlation_offset(l1, l2, start, score, accumulate)[0]
     return zip_samples_at_offset(l1, l2, o, include_empty)
-
-def closer(a, b):
-    """Return a score that's higher, the closer a and b are to eachother."""
-    return -geodistance(a, b)
-
-def avg(seq):
-    return float(sum(seq)) / len(seq)
 
 def main(path1, path2, logfile=None):
     print_samples = False
@@ -215,7 +217,7 @@ def main(path1, path2, logfile=None):
 
     o = int(l1[0].t - l2[0].t)
     print >>log, "# Timestamps are offset by %ds" % (o)
-    o, score = find_local_max_correlation_offset(l1, l2, closer, avg, o)
+    o, score = find_local_max_correlation_offset(l1, l2, o)
     print >>log, "# Minimum score at offset %d is %.2f m" % (o, score)
 
     if print_samples:
