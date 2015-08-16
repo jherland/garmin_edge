@@ -3,6 +3,7 @@
 
 from fit_parser import FitParser
 from tcx_parser import TcxParser
+from gpx_parser import GpxParser
 
 class ActParser(object):
     """Frontend for parsers generating ActSamples."""
@@ -11,6 +12,8 @@ class ActParser(object):
             self.p = FitParser(path)
         elif path.endswith(".tcx"):
             self.p = TcxParser(path)
+        elif path.endswith(".gpx"):
+            self.p = GpxParser(path)
         else:
             raise ValueError("Don't know which parser to use for '%s'" % (path))
 
