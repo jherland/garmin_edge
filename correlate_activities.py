@@ -225,7 +225,7 @@ def main(path1, path2, logfile=None):
 
     if print_samples:
         for s, t in zip_samples_at_offset(l1, l2, o):
-            print >>log, s, t
+            print >>log, "{}\n\t{}\n\t{}".format(geodistance(s, t), s, t)
 
     return 0
 
