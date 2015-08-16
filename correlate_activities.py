@@ -217,6 +217,9 @@ def main(path1, path2, logfile=None):
 
     o = int(l1[0].t - l2[0].t)
     print >>log, "# Timestamps are offset by %ds" % (o)
+    if abs(o) > min(len(l1), len(l2)):
+        print >>log, "# Offset is too big. Assuming clocks out-of-whack..."
+        o = 0
     o, score = find_local_max_correlation_offset(l1, l2, o)
     print >>log, "# Minimum score at offset %d is %.2f m" % (o, score)
 
