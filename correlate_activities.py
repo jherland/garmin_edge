@@ -14,6 +14,12 @@ def closer(a, b):
     """Return a score that's higher, the closer a and b are to eachother."""
     return -geodistance(a, b)
 
+def by_key(key):
+    """Return scoring function that rewards similarity in key(a) and key(b)."""
+    def score_by_key(a, b):
+        return -abs(key(a) - key(b))
+    return score_by_key
+
 def avg(seq):
     return float(sum(seq)) / len(seq)
 
