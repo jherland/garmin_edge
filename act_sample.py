@@ -7,9 +7,9 @@ from datetime import datetime
 class ActSample(object):
     @classmethod
     def empty(cls):
-        return cls(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+        return cls(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
 
-    def __init__(self, t, lat, lon, alt, temp, d, v, hr, cad):
+    def __init__(self, t, lat, lon, alt, temp, d, v, hr, cad, pwr):
         self.t = t # seconds since start/epoch: s
         self.lat = lat # latitude: radians (-π/2 (south) .. +π/2 (north))
         self.lon = lon # longitude: radians (-π (west) .. +π (east))
@@ -19,12 +19,13 @@ class ActSample(object):
         self.v = v # speed: m/s
         self.hr = hr # heart rate: bpm
         self.cad = cad # cadence: rpm
+        self.pwr = pwr # power: watts
 
     def __str__(self):
         return "<%s at %s, %s, %6.1fm.a.s., %4.1f°C, %6dm, %4.1fm/s, " \
-               "%3dbpm, %3drpm>" % (self.__class__.__name__,
+               "%3dbpm, %3drpm, %4dW>" % (self.__class__.__name__,
                 self.pos_str(), self.iso_timestamp(), self.alt, self.temp,
-                self.d, self.v, self.hr, self.cad)
+                self.d, self.v, self.hr, self.cad, self.pwr)
 
     @staticmethod
     def comparator(**kwds):
@@ -46,7 +47,9 @@ class ActSample(object):
         d.update(kwds)
 
         def compfunc(a, b):
-            for f in ['t', 'lat', 'lon', 'alt', 'temp', 'd', 'v', 'hr', 'cad']:
+            for f in [
+                't', 'lat', 'lon', 'alt', 'temp', 'd', 'v', 'hr', 'cad', 'pwr'
+            ]:
                 v = d.get(f, False)
                 if v and abs(getattr(b, f) - getattr(a, f)) > v:
                     return getattr(b, f) - getattr(a, f)
@@ -56,10 +59,17 @@ class ActSample(object):
 
     def replace(self, **d):
         """Return a new ActSample where the given fields have been replaced."""
-        return self.__class__(d.get("t", self.t), d.get("lat", self.lat),
-            d.get("lon", self.lon), d.get("alt", self.alt),
-            d.get("temp", self.temp), d.get("d", self.d), d.get("v", self.v),
-            d.get("hr", self.hr), d.get("cad", self.cad))
+        return self.__class__(
+            d.get("t", self.t),
+            d.get("lat", self.lat),
+            d.get("lon", self.lon),
+            d.get("alt", self.alt),
+            d.get("temp", self.temp),
+            d.get("d", self.d),
+            d.get("v", self.v),
+            d.get("hr", self.hr),
+            d.get("cad", self.cad),
+            d.get("pwr", self.pwr))
 
     def iso_timestamp(self):
         return datetime.fromtimestamp(self.t).isoformat(" ")

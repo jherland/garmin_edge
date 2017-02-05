@@ -67,6 +67,14 @@ class TcxParser(object):
         except TypeError:
             pass
 
+        # power
+        try:
+            d["pwr"] = float(elm.findtext(self.TagPrefix + "Extensions/" +
+                                          self.TagExtPrefix + "TPX/" +
+                                          self.TagExtPrefix + "Watts"))
+        except TypeError:
+            pass
+
         return last_sample.replace(**d)
 
     def samples(self, s=ActSample.empty()):

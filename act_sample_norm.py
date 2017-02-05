@@ -25,7 +25,8 @@ def weighted_sample(a, b, w):
         d = w_avg(a.d, b.d, w),
         v = w_avg(a.v, b.v, w),
         hr = w_avg(a.hr, b.hr, w),
-        cad = w_avg(a.cad, b.cad, w)
+        cad = w_avg(a.cad, b.cad, w),
+        pwr = w_avg(a.pwr, b.pwr, w),
     )
 
 def generate_intermediates(a, b):

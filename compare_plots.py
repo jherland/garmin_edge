@@ -18,6 +18,7 @@ Columns = [
     (7, "v",    "Speed (m/s)"),
     (8, "hr",   "Heart Rate (bpm)"),
     (9, "cad",  "Cadence (rpm)"),
+    (10, "pwr",  "Power (W)"),
 ]
 
 class DataFile(object):

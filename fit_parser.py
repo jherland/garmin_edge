@@ -52,6 +52,7 @@ class FitParser(object):
             d.get('speed', last_sample.v),
             d.get('heart_rate', last_sample.hr),
             d.get('cadence', last_sample.cad),
+            d.get('power', last_sample.pwr)
         )
 
     def samples(self, s=ActSample.empty()):
