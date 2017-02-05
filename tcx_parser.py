@@ -24,8 +24,12 @@ class TcxParser(object):
 
         # timestamp
         ts = elm.findtext(self.TagPrefix + "Time")
-        assert ts.endswith(".000Z") # Assume all timestamps do this...
-        d["t"] = time.mktime(time.strptime(ts[:-5], "%Y-%m-%dT%H:%M:%S"))
+        if ts.endswith(".000Z"):
+            end = -5
+        else:
+            assert ts.endswith("Z")
+            end = -1
+        d["t"] = time.mktime(time.strptime(ts[:end], "%Y-%m-%dT%H:%M:%S"))
 
         # position
         try:
