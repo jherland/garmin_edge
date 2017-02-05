@@ -40,7 +40,7 @@ def generate_intermediates(a, b):
     for i in range(dt):
         yield weighted_sample(a, b, i / float(dt))
 
-def normalize(samples):
+def normalize(samples, ignore_gps=False):
     """Normalize sample streams to ease stream comparisons.
 
     The normalization of a sample stream consist of:
@@ -51,7 +51,9 @@ def normalize(samples):
     a = None
     for b in samples:
         if a is None: # Discard samples until we have a GPS fix
-            if abs(b.lat) + abs(b.lon) < latlon_zero_threshold:
+            if ignore_gps:
+                a = b
+            elif abs(b.lat) + abs(b.lon) < latlon_zero_threshold:
                 continue # No GPS fix yet...
             else:
                 a = b
