@@ -22,18 +22,23 @@ Columns = [
 ]
 
 class DataFile(object):
-    def __init__(self, path_w_threshold):
+    def __init__(self, path):
+        path_w_modifiers = path.split(':')
+        self.path = path_w_modifiers[0]
+        # defaults
+        self.pause_threshold = 1
+        self.offset = 0
         try:
-            self.path, self.pause_threshold = path_w_threshold.rsplit(":", 1)
-            self.pause_threshold = int(self.pause_threshold)
-        except ValueError:
-            self.path, self.pause_threshold = path_w_threshold, 1
+            self.pause_threshold = int(path_w_modifiers[1])
+            self.offset = int(path_w_modifiers[2])
+        except IndexError:
+            pass
         self.basename, self.ext = os.path.splitext(self.path)
         self.gp_path = self.basename + ".gnuplot"
         self.parser = None
 
     def __str__(self):
-        return "%s:%d" % (self.path, self.pause_threshold)
+        return "%s:%d:%s" % (self.path, self.pause_threshold, self.offset)
 
     def parse(self):
         if self.parser is None:
@@ -44,7 +49,7 @@ class DataFile(object):
     def write_gnuplot_data(self):
         self.parse()
         print "# Writing gnuplot data to %s..." % (self.gp_path),
-        write_datafile(self.gp_path, self.parser, self.pause_threshold)
+        write_datafile(self.gp_path, self.parser, self.pause_threshold, self.offset)
         print "done"
 
 def main(*args):

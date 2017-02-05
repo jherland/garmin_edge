@@ -3,7 +3,7 @@
 
 from act_sample import ActSample
 
-def write_datafile(path, parser, pause_threshold=1):
+def write_datafile(path, parser, pause_threshold=1, offset=0):
     f = open(path, "w")
     print >>f, "# Samples from %s:" % (parser.path)
     print >>f, "# time,lat,lon,alt,temp,d,v,hr,cad,pwr"
@@ -12,7 +12,7 @@ def write_datafile(path, parser, pause_threshold=1):
         if int(s.t) > int(prev_t + pause_threshold):
             print >>f # Insert blank line to signal missing sample(s)
         print >>f, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s" % (
-            s.t, s.lat, s.lon, s.alt, s.temp, s.d, s.v, s.hr, s.cad, s.pwr)
+            s.t + offset, s.lat, s.lon, s.alt, s.temp, s.d, s.v, s.hr, s.cad, s.pwr)
         prev_t = s.t
     f.close()
 
