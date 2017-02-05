@@ -28,9 +28,11 @@ class DataFile(object):
         # defaults
         self.pause_threshold = 1
         self.offset = 0
+        self.smooth = 1
         try:
             self.pause_threshold = int(path_w_modifiers[1])
             self.offset = int(path_w_modifiers[2])
+            self.smooth = int(path_w_modifiers[3])
         except IndexError:
             pass
         self.basename, self.ext = os.path.splitext(self.path)
@@ -49,7 +51,7 @@ class DataFile(object):
     def write_gnuplot_data(self):
         self.parse()
         print "# Writing gnuplot data to %s..." % (self.gp_path),
-        write_datafile(self.gp_path, self.parser, self.pause_threshold, self.offset)
+        write_datafile(self.gp_path, self.parser, self.pause_threshold, self.offset, self.smooth)
         print "done"
 
 def main(*args):
