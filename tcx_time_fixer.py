@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
 
+# Run as follows:
+# ./tcx_time_fixer.py \
+#   1970-01-01T00:00:00#2017-01-02T03:04:05>2017-02-03T04:05:06 \
+#   < input.tcx > output.tcx
+
 from datetime import datetime
 import re
 
