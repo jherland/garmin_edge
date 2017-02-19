@@ -31,7 +31,21 @@ def extract_pwr(l1, l2, **correlation_args):
         yield a.pwr, b.pwr
 
 
-def main(path1, path2, smooth=1, skip=0, stop='inf', low=0, high=9999):
+def parse_seconds(value):
+    try:
+        return int(value)  # integer number of seconds
+    except ValueError:  # "MM:SS"
+        minutes, seconds = value.rsplit(':', 1)
+        seconds = int(seconds)
+        try:
+            minutes = int(minutes)
+        except ValueError:  # "HH:MM"
+            hours, minutes = minutes.rsplit(':', 1)
+            minutes = int(hours) * 60 + int(minutes)
+        return minutes * 60 + seconds
+
+
+def main(path1, path2, smooth=1, skip=0, stop=sys.maxint, low=0, high=9999):
     from act_parser import ActParser
     print "# Reading activity data from %s..." % (path1),
     p1 = ActParser(path1)
@@ -44,12 +58,9 @@ def main(path1, path2, smooth=1, skip=0, stop='inf', low=0, high=9999):
 
     smooth = int(smooth)
     assert smooth >= 1
-    skip = int(skip)
+    skip = parse_seconds(skip)
     assert skip >= 0
-    try:
-        stop = int(float(stop))
-    except OverflowError:
-        stop = sys.maxint
+    stop = parse_seconds(stop)
     assert stop > skip
     low = int(low)
     high = int(high)
