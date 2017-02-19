@@ -84,12 +84,14 @@ def main(path1, path2, smooth=1, skip=0, stop=sys.maxint, low=0, high=9999):
             percent = float("inf")
         print "%6d: %4dW, %4dW => %3.1f%%"  % (i, pwr1, pwr2, percent)
     percent = float(sum2) / sum1 * 100
-    print "Average across %d samples: %4.2fW, %4.2fW => %3.3f%%"  % (
+    print "Average across %d samples: %4.2fW, %4.2fW => %3.3f%%" % (
         n,
         float(sum1) / n,
         float(sum2) / n,
         percent)
-
+    print "Difference from %s to %s: %4.2fW/%3.3f%%" % (
+        path1, path2,
+        float(sum2) / n - float(sum1) / n, percent - 100)
 
 if __name__ == '__main__':
     import sys
